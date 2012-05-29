@@ -1,0 +1,8 @@
+#N canvas 1045 83 735 550 10;
+#X text 438 11 audioIn1;
+#X text 604 9 netPort;
+#X obj 14 12 r moistureSensVal;
+#X obj 166 13 r lightSensVal;
+#X obj 292 14 r pHSenVal;
+#X text 11 -17 Sensors;
+#X obj 211 147 struct temp;
