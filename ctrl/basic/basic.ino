@@ -2,7 +2,6 @@
  
  */
 
-
 const int moistSensPin = A0;  
 const int tempSensPin = A1; 
 
@@ -42,12 +41,41 @@ void loop() {
   Serial.print("moisture = " );                       
   Serial.print(moistCurrRead);      
   Serial.print("\t temperature = ");      
-  Serial.println(tempCurrRead);   
+  Serial.println(LM335ATempConvert(tempCurrRead, 'C'));   
 
   // wait 100 milliseconds before the next loop
   // for the analog-to-digital converter to settle
   // after the last reading:
   delay(1000);        
 }
+
+// >> temperature functions
+// ---------------------------
+
+// math learned from GreenRobotics in a comment on SparkFun's website
+int LM335ATempConvert(int tempIn, char unitSystem){
+  int KelvinC=273;
+  int KelvinTemp = (long(tempIn) * 5 * 100) / 1023; // convert 
+  int CelsiusTemp = KelvinTemp-KelvinC;
+  int FahrenheitTemp = (CelsiusTemp)*(9/5)+32;
+  int tempOut;
+
+  switch(unitSystem){
+  case 'K':
+    tempOut = KelvinTemp;
+    break;
+  case 'C':
+    tempOut = CelsiusTemp;
+    break;
+  case 'F':
+    tempOut = FahrenheitTemp;
+    break;
+  }
+  return tempOut;
+}
+
+// ---------------------------
+// << temperature functions
+// ---------------------------
 
   
