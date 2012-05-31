@@ -19,6 +19,7 @@ const int moistHigh = 850;
 float moistSensRaw, moistSensCurr, moistSensHist[moistSmoothSteps];
 
 const int pumpCycle = 10000;
+const int pumpInitDelay = 10000;
 
 unsigned long currentTime, tempSensLast, moistSensLast, pumpOnStart;
 
@@ -50,7 +51,7 @@ void loop() {
     moistRead();  
   } 
   
-  if (moistSensCurr <= moistLow && pumpOn == 0){
+  if (moistSensCurr <= moistLow && pumpOn == 0 && currentTime > pumpInitDelay){
     pumpOnStart = currentTime;
     digitalWrite(pumpCtrlPin, HIGH);
     pumpOn = 1;
@@ -129,3 +130,4 @@ float getVoltage(int pin){
 // ---------------------------
 
   
+
