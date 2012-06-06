@@ -9,21 +9,24 @@ const int pumpCtrlPin = 13;
 const int lightCtrlPin = 12;
  
 const int tempSmoothSteps = 10;
-const int tempSensRate = 1000;
+const int tempSensRate = 3000;
 float tempSensRaw, tempSensCurr, tempSensHist[tempSmoothSteps];
 
 const int moistSmoothSteps = 10;
-const int moistSensRate = 2000;
-const int moistLow = 450;
-const int moistHigh = 850;
+const int moistSensRate = 7000;
+const int moistLow = 550;
+const int moistHigh = 620;
 float moistSensRaw, moistSensCurr, moistSensHist[moistSmoothSteps];
 
-const int pumpCycle = 10000;
-const int pumpInitDelay = 10000;
+const int pumpCycle = 5000;
+const int pumpInitDelay = 20000;
 
-unsigned long currentTime, tempSensLast, moistSensLast, pumpOnStart;
+const int updateRate = 1000;
+
+unsigned long currentTime, tempSensLast, moistSensLast, updateLast, pumpOnStart;
 
 int pumpOn = 0;
+int sensRead = 0;
 
 void setup() {
   
@@ -43,19 +46,23 @@ void loop() {
   
   currentTime = millis();
   
-  if (abs(currentTime - tempSensLast) >= tempSensRate) {
+  if (abs(currentTime - tempSensLast) >= tempSensRate && sensRead != 1) {
     tempRead();  
   } 
   
-  if (abs(currentTime - moistSensLast) >= moistSensRate && pumpOn != 1) {  
+  if (abs(currentTime - moistSensLast) >= moistSensRate && pumpOn != 1 && sensRead != 1) {  
     moistRead();  
+  } 
+  
+  if (abs(currentTime - updateLast) >= updateRate) {  
+    updateServer();  
   } 
   
   if (moistSensCurr <= moistLow && pumpOn == 0 && currentTime > pumpInitDelay){
     pumpOnStart = currentTime;
     digitalWrite(pumpCtrlPin, HIGH);
     pumpOn = 1;
-    Serial.print("\t pump on");
+   // Serial.println("pump on");
   }
   
   if (pumpOn == 1) {
@@ -66,7 +73,7 @@ void loop() {
       if (moistSensCurr >= moistHigh){
         digitalWrite(pumpCtrlPin, LOW);
         pumpOn = 0;
-        Serial.print("\t pump off");   
+       // Serial.print("\t pump off");   
       }
     } 
   }
@@ -74,6 +81,8 @@ void loop() {
 }
 
 void moistRead(){
+  
+    sensRead = 1;
   
     moistSensLast = currentTime;
     
@@ -86,12 +95,13 @@ void moistRead(){
     moistSensHist[0] = moistSensRaw;
     moistSensCurr = moistSensCurr / moistSmoothSteps;  
    
-    Serial.print("\t moisture = ");      
-    Serial.println(moistSensCurr); 
+    sensRead = 0;
   
 }
 
 void tempRead(){
+  
+    sensRead = 1;
   
     tempSensLast = currentTime;
     
@@ -104,9 +114,18 @@ void tempRead(){
     tempSensHist[0] = tempSensRaw;
     tempSensCurr = tempSensCurr / tempSmoothSteps;  
    
-    Serial.print("\t temperature = ");      
-    Serial.println(tempSensCurr);   
-     
+    sensRead = 0;
+}
+
+void updateServer(){
+  
+  updateLast = currentTime;
+  
+  Serial.print("\t t");
+  Serial.println(tempSensCurr);
+  Serial.print("\t m");
+  Serial.println(moistSensCurr);  
+  
 }
 
 // >> temperature functions
@@ -122,7 +141,7 @@ float getTemp(int tempPin){
 }
 
 float getVoltage(int pin){
-    return (analogRead(pin) * .004882814);
+    return (analogRead(pin) * .005);//4882814);
   }
 
 // ---------------------------
